@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=== 🚀 Instalador WahaFast – Ubuntu ==="
+
+# 1. Dependências
+if ! command -v docker &>/dev/null; then
+  echo "[+] Instalando Docker..."
+  curl -fsSL https://get.docker.com | sh
+  sudo usermod -aG docker $USER
+  newgrp docker
+fi
+
+if ! command -v docker compose &>/dev/null; then
+  echo "[+] Instalando Docker Compose plugin..."
+  sudo apt-get update
+  sudo apt-get install -y docker-compose-plugin
+fi
+
+# 2. Clonar projeto se não existir
+if [ ! -d "wahafast" ]; then
+  echo "[+] Clonando repositório WahaFast..."
+  git clone https://github.com/seu-usuario/wahafast.git
+fi
+
+cd wahafast
+
+# 3. Arquivo .env
+if [ ! -f ".env" ]; then
+  echo "[+] Criando arquivo .env a partir do exemplo..."
+  cp .env.example .env
+  echo "⚠️  Edite o arquivo .env e insira WA_ACCESS_TOKEN, WA_PHONE_NUMBER_ID etc."
+fi
+
+# 4. Build containers
+echo "[+] Subindo containers..."
+docker compose build
+docker compose up -d db redis
+sleep 10
+
+# 5. Migrar banco
+echo "[+] Rodando migrações Prisma..."
+docker compose exec server npx prisma migrate deploy
+
+# 6. Subir backend e frontend
+docker compose up -d server web
+
+echo ""
+echo "=== ✅ WahaFast instalado com sucesso! ==="
+echo "➡️ API: http://localhost:4000"
+echo "➡️ Painel Web: http://localhost:3000"
+echo "⚠️ Configure o webhook do Meta para https://SEU_DOMINIO/webhooks/wa"
