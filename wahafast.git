@@ -20,7 +20,7 @@ fi
 # 2. Clonar projeto se não existir
 if [ ! -d "wahafast" ]; then
   echo "[+] Clonando repositório WahaFast..."
-  git clone https://github.com/seu-usuario/wahafast.git
+  git clone https://github.com/jklmnpqrs/wahafast/blob/main/wahafast.git
 fi
 
 cd wahafast
